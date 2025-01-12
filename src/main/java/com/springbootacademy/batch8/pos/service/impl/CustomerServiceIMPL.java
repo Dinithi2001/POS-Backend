@@ -3,6 +3,7 @@ package com.springbootacademy.batch8.pos.service.impl;
 import com.springbootacademy.batch8.pos.dto.CustomerDTO;
 import com.springbootacademy.batch8.pos.dto.request.CustomerUpdateDTO;
 import com.springbootacademy.batch8.pos.entity.Customer;
+import com.springbootacademy.batch8.pos.exception.NotFoundException;
 import com.springbootacademy.batch8.pos.repo.CustomerRepo;
 import com.springbootacademy.batch8.pos.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class CustomerServiceIMPL implements CustomerService {
     @Override
     public String updateCustomer(CustomerUpdateDTO customerUpdateDTO) {
 
-        if(customerRepo.existsById(customerUpdateDTO.getCustomerId())){
+        if (customerRepo.existsById(customerUpdateDTO.getCustomerId())) {
 
             Customer customer = customerRepo.getReferenceById(customerUpdateDTO.getCustomerId());
 
@@ -46,8 +47,7 @@ public class CustomerServiceIMPL implements CustomerService {
 
             customerRepo.save(customer);
             return customer.getCustomerName() + " updated successfully";
-        }
-        else{
+        } else {
             throw new RuntimeException("Not found");
         }
 
@@ -55,7 +55,7 @@ public class CustomerServiceIMPL implements CustomerService {
 
     @Override
     public CustomerDTO getCustomerById(int customerId) {
-        if(customerRepo.existsById(customerId)){
+        if (customerRepo.existsById(customerId)) {
             Customer customer = customerRepo.getReferenceById(customerId);
             CustomerDTO customerDTO = new CustomerDTO(
 
@@ -67,8 +67,8 @@ public class CustomerServiceIMPL implements CustomerService {
                     customer.getNic(),
                     customer.isActive()
             );
-             return customerDTO;
-        }else{
+            return customerDTO;
+        } else {
             throw new RuntimeException("No customer found");
         }
 
@@ -77,52 +77,57 @@ public class CustomerServiceIMPL implements CustomerService {
     @Override
     public List<CustomerDTO> getAllCustomers() {
         List<Customer> getAllCustomers = customerRepo.findAll();
-        List<CustomerDTO> customerDTOList = new ArrayList<>();
+        if (getAllCustomers.size()>0) {
+            List<CustomerDTO> customerDTOList = new ArrayList<>();
 
-        for(Customer customer : getAllCustomers){
-            CustomerDTO customerDTO = new CustomerDTO(
-                    customer.getCustomerId(),
-                    customer.getCustomerName(),
-                    customer.getCustomerAddress(),
-                    customer.getContactNumber(),
-                    customer.getCustomerSalary(),
-                    customer.getNic(),
-                    customer.isActive()
-            );
-            customerDTOList.add(customerDTO);
+            for (Customer customer : getAllCustomers) {
+                CustomerDTO customerDTO = new CustomerDTO(
+                        customer.getCustomerId(),
+                        customer.getCustomerName(),
+                        customer.getCustomerAddress(),
+                        customer.getContactNumber(),
+                        customer.getCustomerSalary(),
+                        customer.getNic(),
+                        customer.isActive()
+                );
+                customerDTOList.add(customerDTO);
+            }
+            return customerDTOList;
+
+        } else {
+            throw new NotFoundException("No customer found");
         }
-        return customerDTOList;
     }
 
-    @Override
-    public String deleteCustomer(int customerId) {
+        @Override
+        public String deleteCustomer ( int customerId){
 
-        if(customerRepo.existsById(customerId)){
-            customerRepo.deleteById(customerId);
-            return "deleted successfully " + customerId;
-        }else{
-            throw new RuntimeException("No customer found in that id");
+            if (customerRepo.existsById(customerId)) {
+                customerRepo.deleteById(customerId);
+                return "deleted successfully " + customerId;
+            } else {
+                throw new RuntimeException("No customer found in that id");
+            }
+
         }
 
-    }
+        @Override
+        public List<CustomerDTO> getAllCustomersByActiveState ( boolean activeState){
+            List<Customer> getAllCustomers = customerRepo.findAllByActiveEquals(activeState);
+            List<CustomerDTO> customerDTOList = new ArrayList<>();
 
-    @Override
-    public List<CustomerDTO> getAllCustomersByActiveState(boolean activeState) {
-        List<Customer> getAllCustomers = customerRepo.findAllByActiveEquals(activeState);
-        List<CustomerDTO> customerDTOList = new ArrayList<>();
-
-        for(Customer customer : getAllCustomers){
-            CustomerDTO customerDTO = new CustomerDTO(
-                    customer.getCustomerId(),
-                    customer.getCustomerName(),
-                    customer.getCustomerAddress(),
-                    customer.getContactNumber(),
-                    customer.getCustomerSalary(),
-                    customer.getNic(),
-                    customer.isActive()
-            );
-            customerDTOList.add(customerDTO);
+            for (Customer customer : getAllCustomers) {
+                CustomerDTO customerDTO = new CustomerDTO(
+                        customer.getCustomerId(),
+                        customer.getCustomerName(),
+                        customer.getCustomerAddress(),
+                        customer.getContactNumber(),
+                        customer.getCustomerSalary(),
+                        customer.getNic(),
+                        customer.isActive()
+                );
+                customerDTOList.add(customerDTO);
+            }
+            return customerDTOList;
         }
-        return customerDTOList;
     }
-}
